@@ -74,7 +74,7 @@ class FileStorage:
         if type(cls) is str:
             cls = eval(cls)
         objs = self.all(cls)
-        for obj in objs:
+        for obj in objs.values:
             if obj.id == id:
                 return obj
         return None
