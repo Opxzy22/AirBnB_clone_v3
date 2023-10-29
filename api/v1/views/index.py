@@ -11,7 +11,7 @@ def get_status():
     return jsonify(status)
 
 
-@app.route('/app/v1/stats', strict_slashes=False)
+@app_views.route('/stats', strict_slashes=False)
 def get_stat():
     stats = {}
     classes = {
