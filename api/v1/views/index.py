@@ -31,3 +31,5 @@ def get_stat():
             }
 
     return jsonify(stats)
+# Register the blueprint
+app.register_blueprint(app_views)
