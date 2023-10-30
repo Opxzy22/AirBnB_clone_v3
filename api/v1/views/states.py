@@ -32,26 +32,57 @@ def get_item(item_id):
         return jsonify(item)
     return jsonify({'error': 'Item not found'}), 404
 
-@app.route('/items', methods=['POST'])
-def create_item():
-    item_data = request.get_json()
-    item_id = len(data) + 1
-    item = Item(item_id, item_data['name'])
-    data[item_id] = item.__dict__
-    return jsonify(item.__dict__), 201
+@app.route('/items', methods=['POST']), strict_slashes= False
+def create_state():
+     # Check if the request data is valid JSON
+    if not request.is_json:
+        return jsonify({"message": "Not a JSON"}), 400
 
-@app.route('/items/<int:item_id>', methods=['PUT'])
-def update_item(item_id):
-    item = data.get(item_id)
-    if item:
-        item_data = request.get_json()
-        item.name = item_data['name']
-        return jsonify(item.__dict__)
+    state_data = request.get_json()
+
+    # Check if the 'name' key is present in the request data
+    if 'name' not in state_data:
+        return jsonify({"message": "Missing name"}), 400
+
+    # Generate a new State ID
+    state_id = len(data) + 1
+    state = State(state_id, state_data['name'])
+    data[state_id] = state.__dict__
+
+    return jsonify(state.__dict__), 201
+
+# Add more routes and functions for other RESTful actions (GET, PUT, DELETE) as needed
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+@app.route('/state/states_id>', methods=['PUT']), strict_slashes= False
+def update_state(state_id):
+    state = data.get(state_id)
+
+      if state:
+        state_data = request.get_json()
+
+        # Validate if the request body is valid JSON
+        if not state_data:
+            return jsonify({'error': 'Not a JSON'}), 400
+
+        # Update the State object with key-value pairs from the request data
+        for key, value in state_data.items():
+            if key not in ('id', 'created_at', 'updated_at'):
+                state[key] = value
+
+        return jsonify(state), 200
     return jsonify({'error': 'Item not found'}), 404
 
-@app.route('/items/<int:item_id>', methods=['DELETE'])
-def delete_item(item_id):
-    item = data.pop(item_id, None)
+# Other RESTful API actions for State objects (e.g., GET, POST, DELETE) can be added here.
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+@app.route('/state/<states_id>', methods=['DELETE'])
+def delete_state(state_id):
+    state = data.pop(state_id, None)
     if item:
         return jsonify({'message': 'Item deleted'})
     return jsonify({'error': 'Item not found'}), 404
