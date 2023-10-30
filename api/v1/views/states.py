@@ -4,88 +4,70 @@
 Create a new view for State objects that handles all default RESTFul API actions:
 """
 from flask import Flask, request, jsonify
+from api.v1.views import app_views
+from models import storage
+from models import storage
 
 app = Flask(__name)
 
-# Sample data to simulate a database
-data = {
-    1: {'id': 1, 'name': 'Item 1'},
-    2: {'id': 2, 'name': 'Item 2'},
-    3: {'id': 3, 'name': 'Item 3'},
-}
+@app_views.route('/states', methods=['GET'], strict_slashes=False)
+def states_all():
+    """ Retrieves list of all State objects """
+    states_all = []
+    states = storage.all("State").values()
+    for state in states:
+        states_all.append(state.to_json())
+    return jsonify(states_all)
 
-class Item:
-    def __init__(self, id, name):
-        self.id = id
-        self.name = name
+@app_views.route('/states/<state_id>', methods=['GET'])
+def state_get(state_id):
+    """ handles GET method """
+    state = storage.get("State", state_id)
+    if state is None:
+        abort(404)
+    state = state.to_json()
+    return jsonify(state)
 
-# RESTful API to handle CRUD operations for items
-@app.route('/items', methods=['GET'])
-def get_items():
-    items = [item.__dict__ for item in data.values()]
-    return jsonify(items)
 
-@app.route('/items/<int:item_id>', methods=['GET'])
-def get_item(item_id):
-    item = data.get(item_id)
-    if item:
-        return jsonify(item)
-    return jsonify({'error': 'Item not found'}), 404
+@app_views.route('/states/<state_id>', methods=['DELETE'])
+def state_delete(state_id):
+    """ handles DELETE method """
+    empty_dict = {}
+    state = storage.get("State", state_id)
+    if state is None:
+        abort(404)
+    storage.delete(state)
+    storage.save()
+    return jsonify(empty_dict), 200
 
-@app.route('/items', methods=['POST']), strict_slashes= False
-def create_state():
-     # Check if the request data is valid JSON
-    if not request.is_json:
-        return jsonify({"message": "Not a JSON"}), 400
 
-    state_data = request.get_json()
+@app_views.route('/states', methods=['POST'], strict_slashes=False)
+def state_post():
+    """ handles POST method """
+    data = request.get_json()
+    if data is None:
+        abort(400, "Not a JSON")
+    if 'name' not in data:
+        abort(400, "Missing name")
+    state = State(**data)
+    state.save()
+    state = state.to_json()
+    return jsonify(state), 201
 
-    # Check if the 'name' key is present in the request data
-    if 'name' not in state_data:
-        return jsonify({"message": "Missing name"}), 400
 
-    # Generate a new State ID
-    state_id = len(data) + 1
-    state = State(state_id, state_data['name'])
-    data[state_id] = state.__dict__
-
-    return jsonify(state.__dict__), 201
-
-# Add more routes and functions for other RESTful actions (GET, PUT, DELETE) as needed
-
-if __name__ == '__main__':
-    app.run(debug=True)
-
-@app.route('/state/states_id>', methods=['PUT']), strict_slashes= False
-def update_state(state_id):
-    state = data.get(state_id)
-
-      if state:
-        state_data = request.get_json()
-
-        # Validate if the request body is valid JSON
-        if not state_data:
-            return jsonify({'error': 'Not a JSON'}), 400
-
-        # Update the State object with key-value pairs from the request data
-        for key, value in state_data.items():
-            if key not in ('id', 'created_at', 'updated_at'):
-                state[key] = value
-
-        return jsonify(state), 200
-    return jsonify({'error': 'Item not found'}), 404
-
-# Other RESTful API actions for State objects (e.g., GET, POST, DELETE) can be added here.
-
-if __name__ == '__main__':
-    app.run(debug=True)
-
-@app.route('/state/<states_id>', methods=['DELETE'])
-def delete_state(state_id):
-    state = data.pop(state_id, None)
-    if item:
-        return jsonify({'message': 'Item deleted'})
-    return jsonify({'error': 'Item not found'}), 404
-
-if __name__ == '__main__':
-    app.run(debug=True)
+@app_views.route('/states/<state_id>', methods=['PUT'])
+def state_put(state_id):
+    """ handles PUT method """
+    state = storage.get("State", state_id)
+    if state is None:
+        abort(404)
+    data = request.get_json()
+    if data is None:
+        abort(400, "Not a JSON")
+    for key, value in data.items():
+        ignore_keys = ["id", "created_at", "updated_at"]
+        if key not in ignore_keys:
+            state.bm_update(key, value)
+    state.save()
+    state = state.to_json()
+    return jsonify(state), 200
