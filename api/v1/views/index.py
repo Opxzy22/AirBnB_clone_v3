@@ -7,12 +7,15 @@ from model import storage
 
 @app_views.route('/status', methods=['get'])
 def get_status():
+    """ configures the status route"""
+
     status = ["status": "ok"]
     return jsonify(status)
 
 
 @app_views.route('/stats', strict_slashes=False)
 def get_stat():
+    """ return the stats of the objects"""
     stats = {}
     classes = {
             "amenities": "Amenity",
