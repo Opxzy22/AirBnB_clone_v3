@@ -30,4 +30,4 @@ def get_stat():
             for att, cls in classes.items()
             }
 
-    return jsonify(stat)
+    return jsonify(stats)
