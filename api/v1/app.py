@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+""" this module starts a flask application"""
 from flask import Flask, jsonify
 from models import storage
 from api.v1.views import app_views
@@ -13,6 +14,13 @@ def tear_down(exception):
     """close the current session"""
 
     storage.close()
+
+
+@app.errorhandler(404)
+def not_found(err):
+    """configures 404 error response """
+
+    return jsonify({"error": "Not found"}), err.code
 
 
 if __name__ == "__main__":
